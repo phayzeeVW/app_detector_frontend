@@ -1,10 +1,38 @@
 import type {Application} from "../../types/application.ts";
-import {ApplicationRow} from "./ApplicationRow.tsx";
 import {applicationsApi} from "../../api/application.ts";
 import {useEffect, useState} from "react";
+import {createColumnHelper, flexRender, getCoreRowModel, useReactTable} from "@tanstack/react-table";
+
+const columnHelper = createColumnHelper<Application>()
+const columns = [
+  columnHelper.accessor("id", {
+    header: "ID",
+    cell: info => info.getValue()
+  }),
+  columnHelper.accessor("title", {
+    header: "Title",
+    cell: info => info.getValue()
+  }),
+  columnHelper.accessor("alias", {
+    header: "Alias",
+    cell: info => info.getValue()
+  }),
+  columnHelper.accessor("path", {
+    header: "Path",
+    cell: info => info.getValue()
+  }),
+  columnHelper.accessor("saveSession", {
+    header: "Save Session",
+    cell: info => info.getValue().toString()
+  }),
+  columnHelper.accessor(row => row.sessions.length, {
+    header: "Number of sessions",
+    cell: info => info.getValue()
+  })
+]
 
 export const ApplicationTable = () => {
-  const [applicationList, setApplicationList] = useState<Application[]>();
+  const [applicationList, setApplicationList] = useState<Application[]>([]);
 
   useEffect(() => {
     applicationsApi.getAll().then(r => {
@@ -12,9 +40,15 @@ export const ApplicationTable = () => {
     });
   }, [])
 
-  if (!applicationList) {
+  const table = useReactTable({
+    data: applicationList,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  if (applicationList.length === 0) {
     return (
-      <div className="min-h-screen overflow-x-auto rounded-box border border-base-content/10 bg-base-200 p-4">
+      <div className="overflow-auto rounded-box border border-base-content/10 bg-base-200 p-4">
         <div className="animate-pulse space-y-3">
           {
             Array.from({length: 20}).map(() => (
@@ -27,22 +61,31 @@ export const ApplicationTable = () => {
   }
 
   return (
-    <div className="overflow-x-auto rounded-box border border-base-content/10 bg-base-200">
-      <table className="table">
-        <thead className="">
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Alias</th>
-            <th>Path</th>
-            <th>Save session</th>
+    <div className="max-h-screen overflow-auto rounded-box border border-base-content/10 bg-base-200">
+      <table className="table table-pin-rows">
+        <thead>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id} className={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <th key={header.id} className={header.id}>
+                {header.isPlaceholder ? null
+                  : flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+              </th>
+            ))}
           </tr>
+        ))}
         </thead>
-
         <tbody>
-        {applicationList && applicationList.map((application) => {
-          return <ApplicationRow key={application.id} application={application} />;
-        })}
+        {table.getRowModel().rows.map((row) => (
+          <tr key={row.id} className="hover:bg-base-300">
+            {row.getVisibleCells().map((cell) => (
+              <td> { cell.getValue<string>() ?? "" } </td>
+            ))}
+          </tr>
+        ))}
         </tbody>
       </table>
     </div>
