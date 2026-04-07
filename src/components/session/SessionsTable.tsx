@@ -4,9 +4,10 @@ import type {SessionSummary} from "../../types/session.ts";
 import {
   createColumnHelper,
   flexRender,
-  getCoreRowModel,
+  getCoreRowModel, getSortedRowModel, type SortingState,
   useReactTable
 } from "@tanstack/react-table";
+import {MdArrowDownward, MdArrowUpward} from "react-icons/md";
 
 const columnHelper = createColumnHelper<SessionSummary>()
 
@@ -46,6 +47,7 @@ const columns = [
 export const SessionsTable = () => {
   const [sessionList, setSessionList] = useState<SessionSummary[]>([]);
   const [columnVisibility, setColumnVisibility] = useState({})
+  const [sorting, setSorting] = useState<SortingState>([])
 
   useEffect(() => {
     sessionsApi.getAllSessionsSummary().then(r => {
@@ -56,12 +58,15 @@ export const SessionsTable = () => {
   const table = useReactTable({
     data: sessionList,
     columns,
-    state: {
-      columnVisibility,
-    },
     columnResizeMode: "onChange",
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      columnVisibility,
+      sorting
+    },
   })
 
   if (sessionList.length === 0) {
@@ -85,12 +90,21 @@ export const SessionsTable = () => {
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id} className={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <th key={header.id} className={header.id}>
-                {header.isPlaceholder ? null
-                  : flexRender(
+              <th key={header.id}
+                  className={`cursor-pointer select-none hover:bg-base-300 ${header.id}`}
+                  onClick={header.column.getToggleSortingHandler()}
+              >
+                <div className="flex items-center">
+                  {flexRender(
                     header.column.columnDef.header,
                     header.getContext(),
                   )}
+                  {header.column.getIsSorted() ?
+                    header.column.getIsSorted() === "asc" ?
+                      <MdArrowUpward className="ml-2" /> :
+                      <MdArrowDownward className="ml-2" /> : null
+                  }
+                </div>
               </th>
             ))}
           </tr>

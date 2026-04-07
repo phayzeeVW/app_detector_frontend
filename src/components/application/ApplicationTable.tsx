@@ -1,7 +1,15 @@
 import type {Application} from "../../types/application.ts";
 import {applicationsApi} from "../../api/application.ts";
 import {useEffect, useState} from "react";
-import {createColumnHelper, flexRender, getCoreRowModel, useReactTable} from "@tanstack/react-table";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable
+} from "@tanstack/react-table";
+import {MdArrowDownward, MdArrowUpward} from "react-icons/md";
 
 const columnHelper = createColumnHelper<Application>()
 const columns = [
@@ -33,6 +41,7 @@ const columns = [
 
 export const ApplicationTable = () => {
   const [applicationList, setApplicationList] = useState<Application[]>([]);
+  const [sorting, setSorting] = useState<SortingState>([])
 
   useEffect(() => {
     applicationsApi.getAll().then(r => {
@@ -44,6 +53,11 @@ export const ApplicationTable = () => {
     data: applicationList,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
   })
 
   if (applicationList.length === 0) {
@@ -67,12 +81,21 @@ export const ApplicationTable = () => {
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id} className={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <th key={header.id} className={header.id}>
-                {header.isPlaceholder ? null
-                  : flexRender(
+              <th key={header.id}
+                  className={`cursor-pointer select-none hover:bg-base-300 ${header.id}`}
+                  onClick={header.column.getToggleSortingHandler()}
+              >
+                <div className="flex items-center">
+                {flexRender(
                     header.column.columnDef.header,
                     header.getContext(),
                   )}
+                  {header.column.getIsSorted() ?
+                    header.column.getIsSorted() === "asc" ?
+                      <MdArrowUpward className="ml-2" /> :
+                      <MdArrowDownward className="ml-2" /> : null
+                  }
+                </div>
               </th>
             ))}
           </tr>
