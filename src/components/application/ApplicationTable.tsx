@@ -62,7 +62,7 @@ export const ApplicationTable = () => {
 
   if (applicationList.length === 0) {
     return (
-      <div className="overflow-auto rounded-box border border-base-content/10 bg-base-200 p-4">
+      <div className="overflow-auto rounded-box border border-base-content/10 bg-base-100 p-4">
         <div className="animate-pulse space-y-3">
           {
             Array.from({length: 20}).map(() => (
@@ -75,14 +75,14 @@ export const ApplicationTable = () => {
   }
 
   return (
-    <div className="max-h-screen overflow-auto rounded-box border border-base-content/10 bg-base-200">
+    <div className="max-h-screen overflow-auto rounded-box border border-base-content/10 bg-base-100 drop-shadow-md">
       <table className="table table-pin-rows">
         <thead>
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id} className={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <th key={header.id}
-                  className={`cursor-pointer select-none hover:bg-base-300 ${header.id}`}
+                  className={`cursor-pointer select-none hover:bg-base-200/80 ${header.id}`}
                   onClick={header.column.getToggleSortingHandler()}
               >
                 <div className="flex items-center">
@@ -103,9 +103,9 @@ export const ApplicationTable = () => {
         </thead>
         <tbody>
         {table.getRowModel().rows.map((row) => (
-          <tr key={row.id} className="hover:bg-base-300">
+          <tr key={row.id} className="hover:bg-base-200/80">
             {row.getVisibleCells().map((cell) => (
-              <td> { cell.getValue<string>() ?? "" } </td>
+              <td> {flexRender(cell.column.columnDef.cell, cell.getContext())} </td>
             ))}
           </tr>
         ))}

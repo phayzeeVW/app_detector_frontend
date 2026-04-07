@@ -5,7 +5,7 @@ import Navbar from "./components/core/Navbar.tsx";
 
 function App() {
   return (
-    <div className="bg-base-100 min-h-screen">
+    <div className="bg-base-200 min-h-screen">
       <Navbar />
 
       <main className="p-4">
