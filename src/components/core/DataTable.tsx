@@ -1,13 +1,23 @@
-import {flexRender, type ColumnDef, type SortingState, getCoreRowModel, getSortedRowModel, useReactTable} from "@tanstack/react-table";
-import {useState} from "react";
+import {
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable
+} from "@tanstack/react-table";
+import {useEffect, useMemo, useState} from "react";
 import {MdArrowDownward, MdArrowUpward} from "react-icons/md";
+import {tableConfigApi} from "../../api/table_config_api.ts";
+import * as React from "react";
 
 type DataTableProps<TData> = {
+  tableName: string;
   data: TData[];
   columns: ColumnDef<TData, any>[];
 };
 
-export const DataTable = <TData,>({data, columns}: DataTableProps<TData>) => {
+export const DataTable = <TData,>({tableName, data, columns}: DataTableProps<TData>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState({});
 
@@ -24,6 +34,42 @@ export const DataTable = <TData,>({data, columns}: DataTableProps<TData>) => {
     },
   });
 
+const memoizedTable = useMemo(() => {
+    console.log(table.getState().columnVisibility)
+    return table.getAllColumns().map((column) => (
+      <li key={column.id}>
+        <label className="cursor-pointer">
+          <input
+            type="checkbox"
+            className="checkbox checkbox-sm"
+            checked={column.getIsVisible()}
+            onChange={() => {
+              console.log("Update column")
+              column.toggleVisibility(!column.getIsVisible());
+              tableConfigApi.write({
+                tableName: tableName,
+                tableConfigJson: JSON.stringify(table.getState().columnVisibility)
+              })
+              console.log(table.getState().columnVisibility)
+            }}
+          />
+          {column.columnDef.header?.toString()}
+        </label>
+      </li>
+    ))
+  }, [table, tableName])
+
+  useEffect(() => {
+    if (table) {
+      tableConfigApi.read(tableName)
+        .then(response => {
+          if (response.tableConfigJson) {
+            table.setColumnVisibility(JSON.parse(response.tableConfigJson));
+          }
+        })
+    }
+  }, [table, tableName]);
+
   if (data.length === 0) {
     return (
       <div className="min-h-screen overflow-x-auto rounded-box border border-base-content/10 bg-base-100 p-4">
@@ -39,23 +85,12 @@ export const DataTable = <TData,>({data, columns}: DataTableProps<TData>) => {
   return (
     <>
       <div className="dropdown mb-4">
-        <div tabIndex={0} role="button" className="btn btn-neutral btn-sm select-none">
+        <button tabIndex={0} role="button" className="btn btn-neutral btn-sm select-none">
           Choose columns
-        </div>
+        </button>
+
         <ul tabIndex={-1} className="dropdown-content menu p-2 shadow-md bg-base-300 rounded-box w-52">
-          {table.getAllColumns().map((column) => (
-            <li key={column.id}>
-              <label className="cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-sm"
-                  checked={column.getIsVisible()}
-                  onChange={(event) => column.toggleVisibility(event.target.checked)}
-                />
-                {column.columnDef.header?.toString()}
-              </label>
-            </li>
-          ))}
+          { memoizedTable }
         </ul>
       </div>
 
@@ -97,6 +132,7 @@ export const DataTable = <TData,>({data, columns}: DataTableProps<TData>) => {
           ))}
           </tbody>
         </table>
+        <pre>{JSON.stringify(table.getState().columnVisibility, null, 2)}</pre>
       </div>
     </>
   );

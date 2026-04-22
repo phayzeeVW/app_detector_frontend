@@ -1,10 +1,13 @@
 import type {Application} from "../../types/application.ts";
-import {applicationsApi} from "../../api/application.ts";
+import {applicationsApi} from "../../api/application_api.ts";
 import {useEffect, useState} from "react";
 import {createColumnHelper} from "@tanstack/react-table";
 import {DataTable} from "../core/DataTable";
+import {MdRemoveRedEye} from "react-icons/md";
+import {Link} from "react-router-dom";
 
 const columnHelper = createColumnHelper<Application>();
+const tableName = "applicationsTable";
 
 const columns = [
   columnHelper.accessor("id",
@@ -23,14 +26,28 @@ const columns = [
     header: "Number of sessions",
     cell: info => info.getValue(),
   }),
+  columnHelper.display({
+    id: "details",
+    header: "",
+    cell: ({ row }) => (
+      <Link
+        to={`/applications/id/${row.original.id}`}
+        className="hover:text-accent"
+        aria-label="Open details"
+      >
+        <MdRemoveRedEye size={20} />
+      </Link>
+    ),
+    enableSorting: false,
+  }),
 ];
 
-export const ApplicationTable = () => {
-  const [applicationList, setApplicationList] = useState<Application[]>([]);
+export const ApplicationsTable = () => {
+  const [applicationsList, setApplicationsList] = useState<Application[]>([]);
 
   useEffect(() => {
-    applicationsApi.getAll().then(setApplicationList);
+    applicationsApi.getAll().then(setApplicationsList);
   }, []);
 
-  return <DataTable data={applicationList} columns={columns} />;
+  return <DataTable tableName={tableName} data={applicationsList} columns={columns} />;
 };
