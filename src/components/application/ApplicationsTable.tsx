@@ -39,6 +39,7 @@ const columns = [
       </Link>
     ),
     enableSorting: false,
+    enableHiding: false,
   }),
 ];
 
