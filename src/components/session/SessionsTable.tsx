@@ -1,10 +1,11 @@
 import {useEffect, useState} from "react";
-import {sessionsApi} from "../../api/session.ts";
+import {sessionsApi} from "../../api/session_api.ts";
 import type {SessionSummary} from "../../types/session.ts";
 import {createColumnHelper} from "@tanstack/react-table";
 import {DataTable} from "../core/DataTable";
 
 const columnHelper = createColumnHelper<SessionSummary>();
+const tableName = "sessionsTable";
 
 const columns = [
   columnHelper.accessor("id",
@@ -22,11 +23,11 @@ const columns = [
 ];
 
 export const SessionsTable = () => {
-  const [sessionList, setSessionList] = useState<SessionSummary[]>([]);
+  const [sessionsList, setSessionsList] = useState<SessionSummary[]>([]);
 
   useEffect(() => {
-    sessionsApi.getAllSessionsSummary().then(setSessionList);
+    sessionsApi.getAllSessionsSummary().then(setSessionsList);
   }, []);
 
-  return <DataTable data={sessionList} columns={columns} />;
+  return <DataTable tableName={tableName} data={sessionsList} columns={columns} />;
 };

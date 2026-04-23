@@ -1,15 +1,25 @@
-import {flexRender, type ColumnDef, type SortingState, getCoreRowModel, getSortedRowModel, useReactTable} from "@tanstack/react-table";
-import {useState} from "react";
+import {
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable
+} from "@tanstack/react-table";
+import {useEffect, useState} from "react";
 import {MdArrowDownward, MdArrowUpward} from "react-icons/md";
+import {tableConfigApi} from "../../api/table_config_api.ts";
 
 type DataTableProps<TData> = {
+  tableName: string;
   data: TData[];
   columns: ColumnDef<TData, any>[];
 };
 
-export const DataTable = <TData,>({data, columns}: DataTableProps<TData>) => {
+export const DataTable = <TData,>({tableName, data, columns}: DataTableProps<TData>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState({});
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const table = useReactTable({
     data,
@@ -23,6 +33,25 @@ export const DataTable = <TData,>({data, columns}: DataTableProps<TData>) => {
       columnVisibility,
     },
   });
+
+  useEffect(() => {
+    tableConfigApi.read(tableName).then((response) => {
+      if (response.tableConfigJson) {
+        setColumnVisibility(JSON.parse(response.tableConfigJson));
+      }
+
+      setIsLoaded(true);
+    });
+  }, [tableName]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    
+    tableConfigApi.write({
+      tableName,
+      tableConfigJson: JSON.stringify(columnVisibility),
+    });
+  }, [tableName, columnVisibility, isLoaded]);
 
   if (data.length === 0) {
     return (
@@ -39,22 +68,29 @@ export const DataTable = <TData,>({data, columns}: DataTableProps<TData>) => {
   return (
     <>
       <div className="dropdown mb-4">
-        <div tabIndex={0} role="button" className="btn btn-neutral btn-sm select-none">
+        <button tabIndex={0} role="button" className="btn btn-neutral btn-sm select-none">
           Choose columns
-        </div>
+        </button>
+
         <ul tabIndex={-1} className="dropdown-content menu p-2 shadow-md bg-base-300 rounded-box w-52">
-          {table.getAllColumns().map((column) => (
-            <li key={column.id}>
-              <label className="cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-sm"
-                  checked={column.getIsVisible()}
-                  onChange={(event) => column.toggleVisibility(event.target.checked)}
-                />
-                {column.columnDef.header?.toString()}
-              </label>
-            </li>
+          {table.getAllColumns()
+            .filter((column) => {
+              return column.getCanHide();
+            })
+            .map((column) => (
+              <li key={column.id}>
+                <label className="cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm"
+                    checked={column.getIsVisible()}
+                    onChange={() => {
+                      column.toggleVisibility(!column.getIsVisible());
+                    }}
+                  />
+                  {column.columnDef.header?.toString()}
+                </label>
+              </li>
           ))}
         </ul>
       </div>
