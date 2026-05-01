@@ -1,7 +1,7 @@
-import { api } from './client';
-import type { Application } from '../types/application';
+import {api} from './client';
+import type {ApplicationSummary, ApplicationWithSessions} from '../types/application';
 
 export const applicationsApi = {
-    getAll: () => api.get<Application[]>('/applications'),
-    getById: (id: number) => api.get<Application>(`/id/${id}`),
+  getAll: () => api.get<ApplicationSummary[]>('/applications'),
+  getById: (id: number) => api.get<ApplicationWithSessions>(`/applications/id/${id}`),
 };
