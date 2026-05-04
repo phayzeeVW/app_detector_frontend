@@ -3,7 +3,7 @@ import {applicationsApi} from "../../api/application_api.ts";
 import {useEffect, useState} from "react";
 import {createColumnHelper} from "@tanstack/react-table";
 import {DataTable} from "../core/DataTable";
-import {MdDelete, MdRemoveRedEye} from "react-icons/md";
+import {MdRemoveRedEye} from "react-icons/md";
 import {Link} from "react-router-dom";
 
 const columnHelper = createColumnHelper<ApplicationSummary>();

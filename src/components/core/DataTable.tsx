@@ -4,11 +4,12 @@ import {
   type SortingState,
   getCoreRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable, getPaginationRowModel
 } from "@tanstack/react-table";
 import {useEffect, useState} from "react";
 import {MdArrowDownward, MdArrowUpward} from "react-icons/md";
 import {tableConfigApi} from "../../api/table_config_api.ts";
+import {useSearchParams} from "react-router-dom";
 
 type DataTableProps<TData> = {
   tableName: string;
@@ -20,19 +21,59 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [isLoaded, setIsLoaded] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handlePageChange = (newPageIndex: number) => {
+    setSearchParams({page: (newPageIndex + 1).toString()}, {replace: true});
+  }
 
   const table = useReactTable({
     data: props.data ? props.data : [],
     columns: props.columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
     state: {
       sorting,
       columnVisibility,
     },
+    initialState: {
+      pagination: {
+        pageIndex: parseInt(searchParams.get('page') || '1', 10) - 1,
+        pageSize: 50,
+      }
+    }
   });
+
+  const paginationComponent = () => {
+    return (
+      <div className="join">
+        <button className="join-item btn btn-neutral"
+                onClick={() => {
+                  table.previousPage();
+                  handlePageChange(table.getState().pagination.pageIndex - 1);
+                }}
+                disabled={!table.getCanPreviousPage()}>
+          «
+        </button>
+
+        <button className="join-item btn btn-neutral">
+          {table.getState().pagination.pageIndex + 1}
+        </button>
+
+        <button className="join-item btn btn-neutral"
+                onClick={() => {
+                  table.nextPage();
+                  handlePageChange(table.getState().pagination.pageIndex + 1);
+                }}
+                disabled={!table.getCanNextPage()}>
+          »
+        </button>
+      </div>
+    )
+  }
 
   useEffect(() => {
     tableConfigApi.read(props.tableName).then((response) => {
@@ -67,33 +108,12 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
 
   return (
     <>
-      <div className="flex flex-row">
+      <div className="flex flex-row relative">
         <div className="dropdown mb-4">
           <button tabIndex={0} role="button" className="btn btn-neutral btn-sm select-none">
             Choose columns
           </button>
 
-        <ul tabIndex={-1} className="dropdown-content menu p-2 shadow-md bg-base-300 rounded-box w-52">
-          {table.getAllColumns()
-            .filter((column) => {
-              return column.getCanHide();
-            })
-            .map((column) => (
-              <li key={column.id}>
-                <label className="cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm"
-                    checked={column.getIsVisible()}
-                    onChange={() => {
-                      column.toggleVisibility(!column.getIsVisible());
-                    }}
-                  />
-                  {column.columnDef.header?.toString()}
-                </label>
-              </li>
-          ))}
-        </ul>
           <ul tabIndex={-1} className="dropdown-content menu p-2 shadow-md bg-base-300 rounded-box w-52">
             {table.getAllColumns()
               .filter((column) => {
@@ -117,6 +137,9 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
           </ul>
         </div>
 
+        <div className="flex flex-1 justify-center absolute left-1/2 transform -translate-x-1/2">
+          {paginationComponent()}
+        </div>
       </div>
 
       <div className="max-h-screen overflow-auto rounded-box border border-base-content/10 bg-base-100 drop-shadow-md">
@@ -145,6 +168,7 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
             </tr>
           ))}
           </thead>
+
           <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id} className="hover:bg-base-200/80">
@@ -157,6 +181,10 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
           ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="my-4 flex flex-1 justify-center">
+        {paginationComponent()}
       </div>
     </>
   );
