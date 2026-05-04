@@ -24,7 +24,7 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handlePageChange = (newPageIndex: number) => {
-    setSearchParams({page: (newPageIndex + 1).toString()});
+    setSearchParams({page: (newPageIndex + 1).toString()}, {replace: true});
   }
 
   const table = useReactTable({
