@@ -22,11 +22,9 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [isLoaded, setIsLoaded] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams();
-  const [pageIndex, setPageIndex] = useState(searchParams.get("page") ? Number.parseInt(searchParams.get("page")) : 0);
 
   const handlePageChange = (newPageIndex: number) => {
-    setPageIndex(newPageIndex);
-    setSearchParams({page: (newPageIndex).toString()});
+    setSearchParams({page: (newPageIndex + 1).toString()});
   }
 
   const table = useReactTable({
@@ -43,7 +41,7 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
     },
     initialState: {
       pagination: {
-        pageIndex: searchParams.get("page") ? Number.parseInt(searchParams.get("page")) : 0,
+        pageIndex: parseInt(searchParams.get('page') || '1', 10) - 1,
         pageSize: 50,
       }
     }
@@ -54,22 +52,23 @@ export const DataTable = <TData, >(props: DataTableProps<TData>) => {
       <div className="join">
         <button className="join-item btn btn-neutral"
                 onClick={() => {
-                  table.previousPage()
-                  handlePageChange(pageIndex - 1)
+                  table.previousPage();
+                  handlePageChange(table.getState().pagination.pageIndex - 1);
                 }}
                 disabled={!table.getCanPreviousPage()}>
           «
         </button>
+
         <button className="join-item btn btn-neutral">
-          {pageIndex}
+          {table.getState().pagination.pageIndex + 1}
         </button>
+
         <button className="join-item btn btn-neutral"
                 onClick={() => {
-                  table.nextPage()
-                  handlePageChange(pageIndex + 1)
+                  table.nextPage();
+                  handlePageChange(table.getState().pagination.pageIndex + 1);
                 }}
-                disabled={!table.getCanNextPage()}
-        >
+                disabled={!table.getCanNextPage()}>
           »
         </button>
       </div>
