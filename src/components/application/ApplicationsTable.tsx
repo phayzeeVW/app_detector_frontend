@@ -5,6 +5,7 @@ import {createColumnHelper} from "@tanstack/react-table";
 import {DataTable} from "../core/DataTable";
 import {MdRemoveRedEye} from "react-icons/md";
 import {Link} from "react-router-dom";
+import SaveSessionBadge from "../core/SaveSessionBadge.tsx";
 
 const columnHelper = createColumnHelper<ApplicationSummary>();
 const tableName = "applicationsTable";
@@ -19,8 +20,10 @@ const columns = [
   columnHelper.accessor("path",
     {header: "Path", cell: info => info.getValue()}),
   columnHelper.accessor("saveSession", {
-    header: "Save Session",
-    cell: info => info.getValue().toString(),
+    header: "Visibility",
+    cell: info => (
+      <SaveSessionBadge visibility={info.getValue()}/>
+    )
   }),
   columnHelper.accessor(row => row.numberOfSessions, {
     header: "Number of sessions",

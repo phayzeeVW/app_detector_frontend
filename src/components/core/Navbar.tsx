@@ -5,7 +5,7 @@ const Navbar = () => {
   return (
     <div className="navbar bg-base-100 shadow-sm">
       <div className="flex-1">
-        <a className="btn btn-ghost text-xl">Application Detector</a>
+        <NavLink to="/applications" className="btn btn-ghost text-xl">Application Detector</NavLink>
       </div>
       <div className="flex-none">
         <ul className="menu menu-horizontal px-1 font-bold">
@@ -15,7 +15,7 @@ const Navbar = () => {
             <details>
               <summary className="btn btn-sm btn-ghost drawer-button">Choose theme</summary>
               <ul className="bg-base-200 p-2 z-10">
-                <ThemesList />
+                <ThemesList/>
               </ul>
             </details>
           </li>

@@ -6,6 +6,7 @@ import {SessionsTable} from "../components/session/SessionsTable.tsx";
 import {FaHashtag} from "react-icons/fa6";
 import {GoRelFilePath} from "react-icons/go";
 import {MdOutlineTextFields} from "react-icons/md";
+import SaveSessionBadge from "../components/core/SaveSessionBadge.tsx";
 
 const ApplicationViewPage = () => {
   const {id} = useParams<{ id: string }>();
@@ -61,12 +62,8 @@ const ApplicationViewPage = () => {
             <span>{application.rawgGameId}</span>
 
             <span></span>
-            <span className="text-base-content/60">Save Sessions</span>
-            <span>
-              <span className={`badge cursor-default ${application.saveSession ? "badge-success" : "badge-warning"}`}>
-                {application.saveSession ? "Yes" : "No"}
-              </span>
-            </span>
+            <span className="text-base-content/60">Visibility</span>
+            <SaveSessionBadge visibility={application.saveSession}/>
           </div>
         </div>
       </div>
