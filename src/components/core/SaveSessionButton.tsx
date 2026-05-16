@@ -1,11 +1,12 @@
 type SaveSessionBadgeProps = {
   visibility: boolean;
+  className?: string;
 };
 
 const SaveSessionBadge = (props: SaveSessionBadgeProps) => {
   return (
     <span
-      className={`badge badge-soft cursor-default ${props.visibility ? "badge-success" : "badge-warning"}`}
+      className={`${props.className} btn btn-sm btn-soft ${props.visibility ? "btn-success" : "btn-warning"}`}
     >
       {props.visibility ? "Visible" : "Hidden"}
     </span>
