@@ -82,6 +82,16 @@ export const ApplicationsTable = () => {
   const [selectedApplication, setSelectedApplication] =
     useState<ApplicationSummary | null>(null);
 
+  const handleApplicationUpdated = (updatedApplication: ApplicationSummary) => {
+    setApplicationsList((currentApplications) =>
+      currentApplications?.map((app) =>
+        app.id === updatedApplication.id ? updatedApplication : app,
+      ),
+    );
+
+    setSelectedApplication(updatedApplication);
+  };
+
   useEffect(() => {
     applicationsApi.getAll().then(setApplicationsList);
   }, []);
@@ -95,11 +105,15 @@ export const ApplicationsTable = () => {
           data={applicationsList}
           columns={columns}
         />
-        ;
       </div>
       <div className="drawer-side">
         <label htmlFor="edit-drawer" className="drawer-overlay"></label>
-        <ApplicationEditDrawer application={selectedApplication} />
+        {selectedApplication && (
+          <ApplicationEditDrawer
+            application={selectedApplication}
+            onUpdated={handleApplicationUpdated}
+          />
+        )}
       </div>
     </div>
   );
