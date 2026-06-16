@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ApplicationWithoutSessions } from "../../types/application.ts";
 import { MdLock, MdLockOpen } from "react-icons/md";
-import { applicationsApi } from "../../api/application_api.ts";
 import Alert from "../core/Alert.tsx";
+import { useApplicationEditForm } from "../../hooks/useApplicationEditForm.tsx";
 
 interface ApplicationEditDrawerProps {
   application: ApplicationWithoutSessions;
@@ -13,46 +13,29 @@ export const ApplicationEditDrawer = ({
   application,
   onUpdated,
 }: ApplicationEditDrawerProps) => {
-  const [savedApplication, setSavedApplication] =
-    useState<ApplicationWithoutSessions>(application);
-  const [formApplication, setFormApplication] =
-    useState<ApplicationWithoutSessions>(application);
   const [titleDisabled, setTitleDisabled] = useState(true);
   const [pathDisabled, setPathDisabled] = useState(true);
-  const [isApplicationUpdated, setIsApplicationUpdated] = useState(false);
 
-  const isFormPropertyChanged = (
-    property: keyof ApplicationWithoutSessions,
-  ) => {
-    return (
-      savedApplication[property] !== undefined &&
-      formApplication[property] !== savedApplication[property]
-    );
-  };
-
-  const isTitleChanged = isFormPropertyChanged("title");
-  const isPathChanged = isFormPropertyChanged("path");
-  const isAliasChanged = isFormPropertyChanged("alias");
-  const isSaveSessionChanged = isFormPropertyChanged("saveSession");
+  const {
+    formApplication,
+    isApplicationUpdated,
+    setIsApplicationUpdated,
+    isTitleChanged,
+    isPathChanged,
+    isAliasChanged,
+    isSaveSessionChanged,
+    isDirty,
+    updateField,
+    submitForm,
+  } = useApplicationEditForm({
+    application,
+    onUpdated,
+  });
 
   const onFormSubmit = (event: { preventDefault: () => void }) => {
     event.preventDefault();
-
-    if (formApplication) {
-      applicationsApi.update(formApplication).then(() => {
-        setSavedApplication(formApplication);
-        setFormApplication(formApplication);
-        setIsApplicationUpdated(true);
-
-        onUpdated(formApplication);
-      });
-    }
+    void submitForm();
   };
-
-  useEffect(() => {
-    setSavedApplication(application);
-    setFormApplication(application);
-  }, [application]);
 
   return (
     formApplication && (
@@ -89,10 +72,7 @@ export const ApplicationEditDrawer = ({
                     className={`input w-full ${isTitleChanged ? "input-accent" : ""}`}
                     value={formApplication.title}
                     onChange={(event) =>
-                      setFormApplication({
-                        ...formApplication,
-                        title: event.target.value,
-                      })
+                      updateField("title", event.target.value)
                     }
                     placeholder="Application title"
                   />
@@ -129,10 +109,7 @@ export const ApplicationEditDrawer = ({
                     className={`input w-full ${isAliasChanged ? "input-accent" : ""}`}
                     value={formApplication.alias}
                     onChange={(event) =>
-                      setFormApplication({
-                        ...formApplication,
-                        alias: event.target.value,
-                      })
+                      updateField("alias", event.target.value)
                     }
                     placeholder="short-name"
                   />
@@ -163,10 +140,7 @@ export const ApplicationEditDrawer = ({
                     className={`input w-full ${isPathChanged ? "input-accent" : ""}`}
                     value={formApplication.path}
                     onChange={(event) =>
-                      setFormApplication({
-                        ...formApplication,
-                        path: event.target.value,
-                      })
+                      updateField("path", event.target.value)
                     }
                     placeholder="C:\Path\To\Application.exe"
                   />
@@ -210,10 +184,7 @@ export const ApplicationEditDrawer = ({
                     className="toggle toggle-primary"
                     checked={formApplication.saveSession}
                     onChange={(event) =>
-                      setFormApplication({
-                        ...formApplication,
-                        saveSession: event.target.checked,
-                      })
+                      updateField("saveSession", event.target.checked)
                     }
                   />
                 </label>
@@ -226,12 +197,7 @@ export const ApplicationEditDrawer = ({
 
                 <button
                   type="submit"
-                  disabled={
-                    !isTitleChanged &&
-                    !isPathChanged &&
-                    !isAliasChanged &&
-                    !isSaveSessionChanged
-                  }
+                  disabled={!isDirty}
                   className="btn btn-soft btn-primary px-8"
                 >
                   Save Changes

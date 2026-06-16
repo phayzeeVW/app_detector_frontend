@@ -2,10 +2,10 @@ import { MdEdit, MdOutlineTextFields } from "react-icons/md";
 import { FaHashtag } from "react-icons/fa6";
 import { GoRelFilePath } from "react-icons/go";
 import type { ApplicationWithSessions } from "../../types/application.ts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SaveSessionButton from "../core/SaveSessionButton.tsx";
-import { applicationsApi } from "../../api/application_api.ts";
 import Alert from "../core/Alert.tsx";
+import { useApplicationEditForm } from "../../hooks/useApplicationEditForm.tsx";
 
 interface ApplicationDetailsProps {
   application: ApplicationWithSessions;
@@ -13,39 +13,26 @@ interface ApplicationDetailsProps {
 
 const ApplicationDetails = (props: ApplicationDetailsProps) => {
   const [editMode, setEditMode] = useState(false);
-  const [application, setApplication] = useState(props.application);
-  const [savedApplication, setSavedApplication] = useState(props.application);
-  const [formApplication, setFormApplication] =
-    useState<ApplicationWithSessions>(application);
-  const [isApplicationUpdated, setIsApplicationUpdated] = useState(false);
 
-  const isFormPropertyChanged = (property: keyof ApplicationWithSessions) => {
-    return (
-      savedApplication[property] !== undefined &&
-      formApplication[property] !== savedApplication[property]
-    );
-  };
-
-  const isTitleChanged = isFormPropertyChanged("title");
-  const isPathChanged = isFormPropertyChanged("path");
-  const isAliasChanged = isFormPropertyChanged("alias");
-  const isSaveSessionChanged = isFormPropertyChanged("saveSession");
-
-  useEffect(() => {
-    setSavedApplication(application);
-    setFormApplication(application);
-  }, [application]);
+  const {
+    formApplication,
+    isTitleChanged,
+    isPathChanged,
+    isAliasChanged,
+    isSaveSessionChanged,
+    isApplicationUpdated,
+    setIsApplicationUpdated,
+    isDirty,
+    updateField,
+    resetForm,
+    submitForm,
+  } = useApplicationEditForm({
+    application: props.application,
+  });
 
   const onFormSubmit = (event: { preventDefault: () => void }) => {
     event.preventDefault();
-
-    if (formApplication) {
-      applicationsApi.update(formApplication).then(() => {
-        setSavedApplication(formApplication);
-        setFormApplication(formApplication);
-        setIsApplicationUpdated(true);
-      });
-    }
+    void submitForm();
   };
 
   return (
@@ -58,7 +45,7 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
             <div
               onClick={() => {
                 setEditMode(!editMode);
-                setFormApplication(application);
+                resetForm();
               }}
               className={`btn btn-soft btn-circle rounded-md btn-info ${editMode ? "btn-active" : ""}`}
             >
@@ -80,12 +67,7 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
             value={formApplication.title}
             disabled={!editMode}
             className={`input ${isTitleChanged ? "input-accent" : ""}`}
-            onChange={(event) =>
-              setFormApplication({
-                ...formApplication,
-                title: event.target.value,
-              })
-            }
+            onChange={(event) => updateField("title", event.target.value)}
           />
 
           <span className="text-base-content/60 select-none">" "</span>
@@ -96,12 +78,7 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
             disabled={!editMode}
             value={formApplication.alias}
             className={`input ${isAliasChanged ? "input-accent" : ""}`}
-            onChange={(event) =>
-              setFormApplication({
-                ...formApplication,
-                alias: event.target.value,
-              })
-            }
+            onChange={(event) => updateField("alias", event.target.value)}
           />
 
           <GoRelFilePath className="text-base-content/60 text-xl" />
@@ -112,12 +89,7 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
             value={formApplication.path}
             disabled={!editMode}
             className={`input w-full ${isPathChanged ? "input-accent" : ""}`}
-            onChange={(event) =>
-              setFormApplication({
-                ...formApplication,
-                path: event.target.value,
-              })
-            }
+            onChange={(event) => updateField("path", event.target.value)}
           />
 
           <FaHashtag className="text-base-content/60" />
@@ -130,12 +102,9 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
             className={`w-fit ${isSaveSessionChanged ? "border-accent" : ""}`}
             disabled={!editMode}
             visibility={formApplication.saveSession}
-            onClick={() => {
-              setFormApplication({
-                ...formApplication,
-                saveSession: !formApplication.saveSession,
-              });
-            }}
+            onClick={() =>
+              updateField("saveSession", !formApplication.saveSession)
+            }
           />
         </div>
 
@@ -145,8 +114,8 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
               disabled={!editMode}
               className="btn btn-soft btn-error mr-2"
               onClick={() => {
+                resetForm();
                 setEditMode(false);
-                setFormApplication(application);
               }}
             >
               Cancel
@@ -155,12 +124,7 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
             <button
               onClick={onFormSubmit}
               type="submit"
-              disabled={
-                !isTitleChanged &&
-                !isPathChanged &&
-                !isAliasChanged &&
-                !isSaveSessionChanged
-              }
+              disabled={!isDirty}
               className="btn btn-soft btn-primary"
             >
               Save Changes
