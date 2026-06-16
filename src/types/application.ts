@@ -1,15 +1,15 @@
-import type {SessionSummary} from "./session.ts";
+import type { SessionSummary } from "./session.ts";
 
-export interface ApplicationWithSessions {
-  id: number,
-  rawgGameId: number,
-  path: string,
-  title: string,
-  alias: string,
-  saveSession: boolean,
-  sessions: SessionSummary[],
+export interface ApplicationWithoutSessions {
+  id: number;
+  rawgGameId: number;
+  path: string;
+  title: string;
+  alias: string;
+  saveSession: boolean;
+  numberOfSessions: number;
 }
 
-export type ApplicationSummary = Omit<ApplicationWithSessions, "sessions"> & {
-  numberOfSessions: number,
+export interface ApplicationWithSessions extends ApplicationWithoutSessions {
+  sessions: SessionSummary[];
 }

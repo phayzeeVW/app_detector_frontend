@@ -1,4 +1,4 @@
-import type { ApplicationSummary } from "../../types/application.ts";
+import type { ApplicationWithoutSessions } from "../../types/application.ts";
 import { applicationsApi } from "../../api/application_api.ts";
 import { useEffect, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { ApplicationEditDrawer } from "./ApplicationEditDrawer.tsx";
 import SaveSessionButton from "../core/SaveSessionButton.tsx";
 
-const columnHelper = createColumnHelper<ApplicationSummary>();
+const columnHelper = createColumnHelper<ApplicationWithoutSessions>();
 const tableName = "applicationsTable";
 
 export const ApplicationsTable = () => {
@@ -26,12 +26,18 @@ export const ApplicationsTable = () => {
       cell: (info) => info.getValue(),
     }),
     columnHelper.accessor("path", {
+      maxSize: 200,
       header: "Path",
       cell: (info) => info.getValue(),
     }),
     columnHelper.accessor("saveSession", {
       header: "Visibility",
-      cell: (info) => <SaveSessionButton visibility={info.getValue()} />,
+      cell: (info) => (
+        <SaveSessionButton
+          onClick={() => onSaveSessionButtonClick(info.cell.row.original)}
+          visibility={info.getValue()}
+        />
+      ),
     }),
     columnHelper.accessor((row) => row.numberOfSessions, {
       header: "Number of sessions",
@@ -41,16 +47,16 @@ export const ApplicationsTable = () => {
       id: "edit",
       header: "",
       cell: ({ row }) => (
-        <div className="tooltip tooltip-info tooltip-left" data-tip="Edit">
+        <button className="btn btn-circle btn-info btn-soft rounded-md">
           <label
             htmlFor="edit-drawer"
-            className="cursor-pointer hover:text-info"
+            className="cursor-pointer"
             aria-label="Edit"
             onClick={() => setSelectedApplication(row.original)}
           >
             <MdEdit size={25} />
           </label>
-        </div>
+        </button>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -59,18 +65,18 @@ export const ApplicationsTable = () => {
       id: "details",
       header: "",
       cell: ({ row }) => (
-        <div
-          className="tooltip tooltip-info tooltip-left"
+        <button
+          className="btn btn-circle btn-accent btn-soft rounded-md"
           data-tip="View details"
         >
           <Link
             to={`/applications/id/${row.original.id}`}
-            className="hover:text-info"
+            className=""
             aria-label="Open details"
           >
             <MdRemoveRedEye size={25} />
           </Link>
-        </div>
+        </button>
       ),
       enableSorting: false,
       enableHiding: false,
@@ -78,11 +84,30 @@ export const ApplicationsTable = () => {
   ];
 
   const [applicationsList, setApplicationsList] =
-    useState<ApplicationSummary[]>();
+    useState<ApplicationWithoutSessions[]>();
   const [selectedApplication, setSelectedApplication] =
-    useState<ApplicationSummary | null>(null);
+    useState<ApplicationWithoutSessions | null>(null);
 
-  const handleApplicationUpdated = (updatedApplication: ApplicationSummary) => {
+  const onSaveSessionButtonClick = (
+    application: ApplicationWithoutSessions,
+  ) => {
+    const updatedApplication = {
+      ...application,
+      saveSession: !application.saveSession,
+    };
+
+    applicationsApi.update(updatedApplication).then(() => {
+      setApplicationsList((currentApplications) =>
+        currentApplications?.map((app) =>
+          app.id === updatedApplication.id ? updatedApplication : app,
+        ),
+      );
+    });
+  };
+
+  const handleApplicationUpdated = (
+    updatedApplication: ApplicationWithoutSessions,
+  ) => {
     setApplicationsList((currentApplications) =>
       currentApplications?.map((app) =>
         app.id === updatedApplication.id ? updatedApplication : app,

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import type { ApplicationSummary } from "../../types/application.ts";
+import type { ApplicationWithoutSessions } from "../../types/application.ts";
 import { MdLock, MdLockOpen } from "react-icons/md";
 import { applicationsApi } from "../../api/application_api.ts";
 import Alert from "../core/Alert.tsx";
 
 interface ApplicationEditDrawerProps {
-  application: ApplicationSummary;
-  onUpdated: (application: ApplicationSummary) => void;
+  application: ApplicationWithoutSessions;
+  onUpdated: (application: ApplicationWithoutSessions) => void;
 }
 
 export const ApplicationEditDrawer = ({
@@ -14,30 +14,28 @@ export const ApplicationEditDrawer = ({
   onUpdated,
 }: ApplicationEditDrawerProps) => {
   const [savedApplication, setSavedApplication] =
-    useState<ApplicationSummary>(application);
+    useState<ApplicationWithoutSessions>(application);
   const [formApplication, setFormApplication] =
-    useState<ApplicationSummary>(application);
+    useState<ApplicationWithoutSessions>(application);
   const [titleDisabled, setTitleDisabled] = useState(true);
   const [pathDisabled, setPathDisabled] = useState(true);
   const [isApplicationUpdated, setIsApplicationUpdated] = useState(false);
 
-  const isTitleChanged =
-    savedApplication?.title !== undefined &&
-    formApplication?.title !== savedApplication.title;
+  const isFormPropertyChanged = (
+    property: keyof ApplicationWithoutSessions,
+  ) => {
+    return (
+      savedApplication[property] !== undefined &&
+      formApplication[property] !== savedApplication[property]
+    );
+  };
 
-  const isPathChanged =
-    savedApplication?.path !== undefined &&
-    formApplication?.path !== savedApplication.path;
+  const isTitleChanged = isFormPropertyChanged("title");
+  const isPathChanged = isFormPropertyChanged("path");
+  const isAliasChanged = isFormPropertyChanged("alias");
+  const isSaveSessionChanged = isFormPropertyChanged("saveSession");
 
-  const isAliasChanged =
-    savedApplication?.alias !== undefined &&
-    formApplication?.alias !== savedApplication.alias;
-
-  const isSaveSessionChanged =
-    savedApplication?.saveSession !== undefined &&
-    formApplication?.saveSession !== savedApplication.saveSession;
-
-  const onFormSubmit = (event) => {
+  const onFormSubmit = (event: { preventDefault: () => void }) => {
     event.preventDefault();
 
     if (formApplication) {
@@ -128,7 +126,7 @@ export const ApplicationEditDrawer = ({
                   <input
                     id="alias"
                     type="text"
-                    className="input w-full"
+                    className={`input w-full ${isAliasChanged ? "input-accent" : ""}`}
                     value={formApplication.alias}
                     onChange={(event) =>
                       setFormApplication({
@@ -222,7 +220,7 @@ export const ApplicationEditDrawer = ({
               </div>
 
               <div className="card-actions justify-end pt-2">
-                <label htmlFor="edit-drawer" className="btn btn-error">
+                <label htmlFor="edit-drawer" className="btn btn-soft btn-error">
                   Cancel
                 </label>
 
@@ -234,7 +232,7 @@ export const ApplicationEditDrawer = ({
                     !isAliasChanged &&
                     !isSaveSessionChanged
                   }
-                  className="btn btn-primary px-8"
+                  className="btn btn-soft btn-primary px-8"
                 >
                   Save Changes
                 </button>
