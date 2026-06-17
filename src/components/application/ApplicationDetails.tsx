@@ -47,7 +47,7 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
                 setEditMode(!editMode);
                 resetForm();
               }}
-              className={`btn btn-soft btn-circle rounded-md btn-info ${editMode ? "btn-active" : ""}`}
+              className={`btn btn-soft btn-circle btn-info ${editMode ? "btn-active" : ""}`}
             >
               <MdEdit size={25} />
             </div>

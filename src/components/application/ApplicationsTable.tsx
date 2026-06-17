@@ -47,10 +47,10 @@ export const ApplicationsTable = () => {
       id: "edit",
       header: "",
       cell: ({ row }) => (
-        <button className="btn btn-circle btn-info btn-soft rounded-md">
+        <button className="btn btn-circle btn-info btn-soft">
           <label
             htmlFor="edit-drawer"
-            className="cursor-pointer"
+            className="cursor-pointer h-full w-full flex items-center justify-center"
             aria-label="Edit"
             onClick={() => setSelectedApplication(row.original)}
           >
@@ -66,12 +66,12 @@ export const ApplicationsTable = () => {
       header: "",
       cell: ({ row }) => (
         <button
-          className="btn btn-circle btn-accent btn-soft rounded-md"
+          className="btn btn-circle btn-accent btn-soft"
           data-tip="View details"
         >
           <Link
             to={`/applications/id/${row.original.id}`}
-            className=""
+            className="cursor-pointer h-full w-full flex items-center justify-center"
             aria-label="Open details"
           >
             <MdRemoveRedEye size={25} />
