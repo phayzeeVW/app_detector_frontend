@@ -36,7 +36,7 @@ const ApplicationDetails = (props: ApplicationDetailsProps) => {
   };
 
   return (
-    <div className="card bg-base-100 shadow-sm mb-6">
+    <div className="card bg-base-100/50 shadow-md border border-base-content/5 mb-6 bg-linear-to-br from-primary/10 to-accent/10">
       <div className="card-body">
         <div className="flex w-full">
           <h2 className="card-title">Details</h2>

@@ -38,6 +38,9 @@ export const ApplicationsTable = () => {
           visibility={info.getValue()}
         />
       ),
+      meta: {
+        filterVariant: "select",
+      },
     }),
     columnHelper.accessor((row) => row.numberOfSessions, {
       header: "Number of sessions",
