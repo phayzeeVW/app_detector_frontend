@@ -2,6 +2,7 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   type SortingState,
@@ -23,6 +24,7 @@ export const DataTable = <TData,>(props: DataTableProps<TData>) => {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [isLoaded, setIsLoaded] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const handlePageChange = (newPageIndex: number) => {
     setSearchParams({ page: (newPageIndex + 1).toString() }, { replace: true });
@@ -38,13 +40,25 @@ export const DataTable = <TData,>(props: DataTableProps<TData>) => {
     columns: props.columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     autoResetPageIndex: false,
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const searchTerm = String(filterValue).toLowerCase();
+
+      return row.getVisibleCells().some((cell) =>
+        String(cell.getValue() ?? "")
+          .toLowerCase()
+          .includes(searchTerm),
+      );
+    },
     state: {
       sorting,
       columnVisibility,
+      globalFilter,
     },
     initialState: {
       pagination: {
@@ -52,8 +66,15 @@ export const DataTable = <TData,>(props: DataTableProps<TData>) => {
         pageSize: 50,
       },
     },
-    rowCount: props.data ? props.data.length : 0,
   });
+
+  const handleSearchTerm = (searchTerm: string) => {
+    setGlobalFilter(searchTerm);
+    table.setPageIndex(0);
+    handlePageChange(0);
+
+    console.log(table.getPageCount());
+  };
 
   const paginationComponent = () => {
     const currentPageIndex = table.getState().pagination.pageIndex;
@@ -174,8 +195,8 @@ export const DataTable = <TData,>(props: DataTableProps<TData>) => {
 
   return (
     <>
-      <div className="flex flex-row relative">
-        <div className="dropdown mb-4">
+      <div className="relative mb-4 flex flex-row items-center justify-between">
+        <div className="dropdown">
           <button
             tabIndex={0}
             role="button"
@@ -211,12 +232,22 @@ export const DataTable = <TData,>(props: DataTableProps<TData>) => {
           </ul>
         </div>
 
-        <div className="flex flex-1 justify-center absolute left-1/2 transform -translate-x-1/2">
+        <div className="absolute left-1/2 -translate-x-1/2">
           {paginationComponent()}
+        </div>
+
+        <div className="flex">
+          <input
+            value={globalFilter}
+            onChange={(event) => handleSearchTerm(event.target.value)}
+            type="search"
+            className="input"
+            placeholder="Search"
+          />
         </div>
       </div>
 
-      <div className="max-h-screen overflow-auto rounded-box border border-base-content/10 drop-shadow-md">
+      <div className="max-h-screen overflow-auto rounded-box border border-base-content/10 bg-base-200/30 drop-shadow-sm">
         <table className="table table-pin-rows">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -248,7 +279,7 @@ export const DataTable = <TData,>(props: DataTableProps<TData>) => {
 
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-base-200/80 drop-shadow-2xl">
+              <tr key={row.id} className="hover:bg-base-200/80 drop-shadow-md">
                 {row.getVisibleCells().map((cell, index) => (
                   <td key={`td_${index}`}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

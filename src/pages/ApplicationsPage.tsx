@@ -1,12 +1,7 @@
-import {ApplicationsTable} from "../components/application/ApplicationsTable.tsx";
+import { ApplicationsTable } from "../components/application/ApplicationsTable.tsx";
 
 const ApplicationsPage = () => {
-  return (
-    <>
-      <div className="text-2xl font-bold mb-4">Applications</div>
-      <ApplicationsTable/>
-    </>
-  )
-}
+  return <ApplicationsTable />;
+};
 
-export default ApplicationsPage
+export default ApplicationsPage;

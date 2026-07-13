@@ -125,24 +125,29 @@ export const ApplicationsTable = () => {
   }, []);
 
   return (
-    <div className="drawer drawer-end">
-      <input type="checkbox" id="edit-drawer" className="drawer-toggle" />
-      <div className="drawer-content">
-        <DataTable
-          tableName={tableName}
-          data={applicationsList}
-          columns={columns}
-        />
+    <>
+      <div className="text-2xl font-semibold mb-3 rounded-sm border-l-4 border-l-accent">
+        <span className="ml-2"> Applications ({applicationsList?.length})</span>
       </div>
-      <div className="drawer-side">
-        <label htmlFor="edit-drawer" className="drawer-overlay"></label>
-        {selectedApplication && (
-          <ApplicationEditDrawer
-            application={selectedApplication}
-            onUpdated={handleApplicationUpdated}
+      <div className="drawer drawer-end">
+        <input type="checkbox" id="edit-drawer" className="drawer-toggle" />
+        <div className="drawer-content">
+          <DataTable
+            tableName={tableName}
+            data={applicationsList}
+            columns={columns}
           />
-        )}
+        </div>
+        <div className="drawer-side">
+          <label htmlFor="edit-drawer" className="drawer-overlay"></label>
+          {selectedApplication && (
+            <ApplicationEditDrawer
+              application={selectedApplication}
+              onUpdated={handleApplicationUpdated}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
